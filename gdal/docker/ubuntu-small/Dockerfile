@@ -29,7 +29,7 @@ RUN apt-get update -y \
        libwebp-dev \
        libzstd1-dev bash zip curl \
        libpq-dev libssl-dev \
-       autoconf automake sqlite3 bash-completion
+       autoconf automake sqlite3 bash-completion libcfitsio-dev
 
 ARG PROJ_INSTALL_PREFIX
 ARG PROJ_DATUMGRID_LATEST_LAST_MODIFIED
@@ -162,7 +162,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y  --no-install-recommends \
         libcurl4 libexpat1 \
         libxerces-c3.2 \
         libwebp6 \
-        libzstd1 bash libpq5 libssl1.1
+        libzstd1 bash libpq5 libssl1.1 libcfitsio5
 
 # Order layers starting with less frequently varying ones
 COPY --from=builder  /build_projgrids/usr/ /usr/
