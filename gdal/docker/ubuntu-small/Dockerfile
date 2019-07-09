@@ -180,7 +180,14 @@ RUN apt-get update -y; \
         libcurl4 libexpat1 \
         libxerces-c3.2 \
         libwebp6 \
-        libzstd1 bash libpq5 libssl1.1 libcfitsio5
+        libzstd1 bash libpq5 libssl1.1 \
+        # Add FITS support
+        libcfitsio5 \
+        # add pip3 and setuptools to run the test
+        python3-pip python3-setuptools
+
+#Install pytest (needed by gdal autotest)
+RUN pip3 install pytest-sugar pytest-env
 
 # Order layers starting with less frequently varying ones
 COPY --from=builder  /build_thirdparty/usr/ /usr/
