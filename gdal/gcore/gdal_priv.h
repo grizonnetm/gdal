@@ -8,7 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1998, Frank Warmerdam
- * Copyright (c) 2007-2014, Even Rouault <even dot rouault at mines-paris dot org>
+ * Copyright (c) 2007-2014, Even Rouault <even dot rouault at spatialys.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -1275,7 +1275,9 @@ class CPL_DLL GDALRasterBand : public GDALMajorObject
                                int nMaskFlagStop = 0,
                                double* pdfDataPct = nullptr );
 
+#ifndef DOXYGEN_XML
     void ReportError(CPLErr eErrClass, CPLErrorNum err_no, const char *fmt, ...)  CPL_PRINT_FUNC_FORMAT (4, 5);
+#endif
 
     /** Convert a GDALRasterBand* to a GDALRasterBandH.
      * @since GDAL 2.3
@@ -1763,13 +1765,6 @@ GTIFFBuildOverviews( const char * pszFilename,
                      int nOverviews, int * panOverviewList,
                      const char * pszResampling,
                      GDALProgressFunc pfnProgress, void * pProgressData );
-
-CPLErr CPL_DLL
-GDALDefaultBuildOverviews( GDALDataset *hSrcDS, const char * pszBasename,
-                           const char * pszResampling,
-                           int nOverviews, int * panOverviewList,
-                           int nBands, int * panBandList,
-                           GDALProgressFunc pfnProgress, void * pProgressData);
 
 int CPL_DLL GDALBandGetBestOverviewLevel(GDALRasterBand* poBand,
                                          int &nXOff, int &nYOff,

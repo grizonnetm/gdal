@@ -6,7 +6,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999, Frank Warmerdam
- * Copyright (c) 2007-2013, Even Rouault <even dot rouault at mines-paris dot org>
+ * Copyright (c) 2007-2013, Even Rouault <even dot rouault at spatialys.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -2749,6 +2749,8 @@ void GDALComposeGeoTransforms(const double *padfGT1, const double *padfGT2,
 
 static void StripIrrelevantOptions(CPLXMLNode* psCOL, int nOptions)
 {
+    if( psCOL == nullptr )
+        return;
     if( nOptions == 0 )
         nOptions = GDAL_OF_RASTER;
     if( (nOptions & GDAL_OF_RASTER) != 0 && (nOptions & GDAL_OF_VECTOR) != 0 )

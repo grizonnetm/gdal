@@ -8,7 +8,7 @@
  *
  ******************************************************************************
  * Copyright (c) 1999,  Les Technologies SoftMap Inc.
- * Copyright (c) 2008-2013, Even Rouault <even dot rouault at mines-paris dot org>
+ * Copyright (c) 2008-2013, Even Rouault <even dot rouault at spatialys.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -648,6 +648,10 @@ class CPL_DLL OGRSpatialReference
         const char* pszPrjName, double dfCentralMeridian, double dfLatOfOrigin,
         const char* pszUnitsName, const char* pszCRSName = nullptr );
 
+/*! @cond Doxygen_Suppress */
+    void UpdateCoordinateSystemFromGeogCRS();
+/*! @endcond */
+
     static OGRSpatialReference* GetWGS84SRS();
 
     /** Convert a OGRSpatialReference* to a OGRSpatialReferenceH.
@@ -769,10 +773,12 @@ OGRCreateCoordinateTransformation( const OGRSpatialReference *poSource,
 
 struct CPL_DLL OGRCoordinateTransformationOptions
 {
+/*! @cond Doxygen_Suppress */
 private:
     friend class OGRProjCT;
     struct Private;
     std::unique_ptr<Private> d;
+/*! @endcond */
 
 public:
     OGRCoordinateTransformationOptions();
@@ -784,6 +790,10 @@ public:
                            double dfNorthLatitudeDeg);
 
     bool SetCoordinateOperation(const char* pszCT, bool bReverseCT);
+/*! @cond Doxygen_Suppress */
+    void SetSourceCenterLong(double dfCenterLong);
+    void SetTargetCenterLong(double dfCenterLong);
+/*! @endcond */
 };
 
 
