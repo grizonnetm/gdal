@@ -34,7 +34,9 @@ RUN apt-get update -y \
        # add pip3 and setuptools to run the test
        python3-pip python3-setuptools \
        # editor to develop
-       emacs vim
+       emacs vim \
+       # configure locales needed to properly output pytest
+       locales
 
 #Install pytest (needed by gdal autotest)
 RUN pip3 install wheel
@@ -172,3 +174,11 @@ RUN ldconfig
 # Environment Replacement PYTHONPATH and LD_LIBRARY_PATH
 ENV LD_LIBRARY_PATH="/gdal/gdal/:/build/usr/local/lib/:${LD_LIBRARY_PATH}"
 ENV PYTHONPATH="/gdal/gdal/swig/python/build/lib.linux-x86_64-3.6/:${PYTHONPATH}"
+
+# Set the locale
+# To fix color output issue with pytest and pytest-sugar
+# Solution found here: https://github.com/Frozenball/pytest-sugar/issues/91
+RUN locale-gen en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
