@@ -28,25 +28,17 @@ RUN apt-get update -y \
        libwebp-dev \
        libzstd1-dev bash zip curl \
        libpq-dev libssl-dev \
-       autoconf automake sqlite3 bash-completion libcfitsio-dev
+       autoconf automake sqlite3 bash-completion \
+       # Add FITS support
+       libcfitsio5 libcfitsio-dev \
+       # add pip3 and setuptools to run the test
+       python3-pip python3-setuptools \
+       # editor to develop
+       emacs vim
 
-# Build openjpeg
-ARG OPENJPEG_VERSION=2.3.1
-RUN if test "${OPENJPEG_VERSION}" != ""; then ( \
-    wget -q https://github.com/uclouvain/openjpeg/archive/v${OPENJPEG_VERSION}.tar.gz \
-    && tar xzf v${OPENJPEG_VERSION}.tar.gz \
-    && rm -f v${OPENJPEG_VERSION}.tar.gz \
-    && cd openjpeg-${OPENJPEG_VERSION} \
-    && cmake . -DBUILD_SHARED_LIBS=ON  -DBUILD_STATIC_LIBS=OFF -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_INSTALL_PREFIX=/usr \
-    && make -j$(nproc) \
-    && make install \
-    && mkdir -p /build_thirdparty/usr/lib \
-    && cp -P /usr/lib/libopenjp2*.so* /build_thirdparty/usr/lib \
-    && for i in /build_thirdparty/usr/lib/*; do strip -s $i 2>/dev/null || /bin/true; done \
-    && cd .. \
-    && rm -rf openjpeg-${OPENJPEG_VERSION} \
-    ); fi
+#Install pytest (needed by gdal autotest)
+RUN pip3 install wheel
+RUN pip3 install pytest pytest-sugar pytest-env
 
 ARG PROJ_INSTALL_PREFIX
 ARG PROJ_DATUMGRID_LATEST_LAST_MODIFIED
@@ -148,7 +140,6 @@ RUN if test "${GDAL_VERSION}" = "master"; then \
         unset CXX; \
     fi \
     && cd ../.. \
-    && rm -rf gdal \
     && mkdir -p /build_gdal_python/usr/lib \
     && mkdir -p /build_gdal_python/usr/bin \
     && mkdir -p /build_gdal_version_changing/usr/include \
@@ -161,48 +152,23 @@ RUN if test "${GDAL_VERSION}" = "master"; then \
     && for i in /build_gdal_python/usr/lib/python3/dist-packages/osgeo/*.so; do strip -s $i 2>/dev/null || /bin/true; done \
     && for i in /build_gdal_version_changing/usr/bin/*; do strip -s $i 2>/dev/null || /bin/true; done
 
-# Build final image
-FROM ubuntu:18.04 as runner
-
-RUN date
-
-# PROJ dependencies
-RUN apt-get update; \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y  --no-install-recommends \
-        libsqlite3-0 \
-        curl unzip
-
-# GDAL dependencies
-RUN apt-get update -y; \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y  --no-install-recommends \
-        python3-numpy libpython3.6 \
-        libjpeg-turbo8 libgeos-3.6.2 libgeos-c1v5 \
-        libcurl4 libexpat1 \
-        libxerces-c3.2 \
-        libwebp6 \
-        libzstd1 bash libpq5 libssl1.1 \
-        # Add FITS support
-        libcfitsio5 \
-        # add pip3 and setuptools to run the test
-        python3-pip python3-setuptools
-
-#Install pytest (needed by gdal autotest)
-RUN pip3 install pytest-sugar pytest-env
 
 # Order layers starting with less frequently varying ones
-COPY --from=builder  /build_thirdparty/usr/ /usr/
-
-COPY --from=builder  /build_projgrids/usr/ /usr/
+RUN cp -r  /build_projgrids/usr/ /usr/
 
 ARG PROJ_INSTALL_PREFIX
-COPY --from=builder  /build${PROJ_INSTALL_PREFIX}/share/proj/ ${PROJ_INSTALL_PREFIX}/share/proj/
-COPY --from=builder  /build${PROJ_INSTALL_PREFIX}/include/ ${PROJ_INSTALL_PREFIX}/include/
-COPY --from=builder  /build${PROJ_INSTALL_PREFIX}/bin/ ${PROJ_INSTALL_PREFIX}/bin/
-COPY --from=builder  /build${PROJ_INSTALL_PREFIX}/lib/ ${PROJ_INSTALL_PREFIX}/lib/
+RUN cp -r  /build${PROJ_INSTALL_PREFIX}/share/proj/ ${PROJ_INSTALL_PREFIX}/share/proj/
+RUN cp -r  /build${PROJ_INSTALL_PREFIX}/include/ ${PROJ_INSTALL_PREFIX}/include/
+RUN cp -r  /build${PROJ_INSTALL_PREFIX}/bin/ ${PROJ_INSTALL_PREFIX}/bin/
+RUN cp -r  /build${PROJ_INSTALL_PREFIX}/lib/ ${PROJ_INSTALL_PREFIX}/lib/
 
-COPY --from=builder  /build/usr/share/gdal/ /usr/share/gdal/
-COPY --from=builder  /build/usr/include/ /usr/include/
-COPY --from=builder  /build_gdal_python/usr/ /usr/
-COPY --from=builder  /build_gdal_version_changing/usr/ /usr/
+RUN cp -r  /build/usr/share/gdal/ /usr/share/gdal/
+RUN cp -r  /build/usr/include/ /usr/include/
+RUN cp -r  /build_gdal_python/usr/ /usr/
+RUN cp -r  /build_gdal_version_changing/usr/ /usr/
 
 RUN ldconfig
+
+# Environment Replacement PYTHONPATH and LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH="/gdal/gdal/:/build/usr/local/lib/:${LD_LIBRARY_PATH}"
+ENV PYTHONPATH="/gdal/gdal/swig/python/build/lib.linux-x86_64-3.6/:${PYTHONPATH}"
